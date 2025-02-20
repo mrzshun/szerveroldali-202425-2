@@ -28,7 +28,7 @@
         <p>File does not exist</p>
     <?php else: ?>
         <?php if($postById == null): ?>
-            <h1>All blogpost</h1>
+            <h1>All blogposts</h1>
             <?php foreach($posts as $post): ?>
                 <h1><?=  $post['title'] ?></h1>
 

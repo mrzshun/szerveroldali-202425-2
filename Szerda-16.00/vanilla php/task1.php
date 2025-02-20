@@ -10,7 +10,7 @@
         $simpleName = strtolower(substr($name[1],0,1).$nameArray[0]);
         $email = $simpleName.'@'. $emailEndings[array_rand($emailEndings)];
         return $email;
-    }
+    }  
     $name = generateName();
     $email = generateEmail($name);
 ?>
