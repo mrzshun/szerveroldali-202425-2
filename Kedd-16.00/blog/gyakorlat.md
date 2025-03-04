@@ -24,3 +24,5 @@ Modellek közötti kapcsolatok
 - User-Comment: 1-n
 
 https://webprogramozas.inf.elte.hu/#!/subjects/webprog-server/handouts/laravel-04-rel%C3%A1ci%C3%B3k
+
+https://laravel.com/docs/12.x/eloquent-relationships#main-content
