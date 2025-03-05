@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string('name');
-            $table->string('txt_color');
-            $table->string('bg_color');
+            $table->enum('style',['primary', 'secondary','danger', 'warning', 'info', 'dark']);
         });
     }
 

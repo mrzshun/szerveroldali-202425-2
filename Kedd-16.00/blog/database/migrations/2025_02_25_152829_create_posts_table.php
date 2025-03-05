@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->text('text');
 
-            $table->unsignedBigInteger('author_id')->unique()->nullable();
+            $table->unsignedBigInteger('author_id')->nullable();
             $table->foreign('author_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
