@@ -29,3 +29,7 @@ User-Post - 1-n (1-many)
 Post-Category - n-n (n-m, many-many)
 Post-Comment - 1-n
 User-Comment - 1-n
+
+Frontend letöltése:
+
+https://github.com/szerveroldali/blog_basic_assets
