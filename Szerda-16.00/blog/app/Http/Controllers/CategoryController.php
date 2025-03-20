@@ -32,7 +32,7 @@ class CategoryController extends Controller
     {
         //adatok validálása
         $validated = $request->validate([
-            'name' => 'required|min:3|max:12',
+            'name' => 'required|min:3|max:12|unique:categories',
             'style' => [
                 'required',
                 Rule::in(Category::$styles),
