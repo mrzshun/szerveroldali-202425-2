@@ -6,34 +6,56 @@
 <div class="container">
 
     {{-- TODO: Session flashes --}}
+    @if (Session::has('post_created'))
+    <div class="alert alert-success">
+        <p>Post created successfully!</span>
+        </p>
+    </div>
+    @endif
+
+    @if (Session::has('post_updated'))
+    <div class="alert alert-success">
+        <p>Post updated successfully!</span>
+        </p>
+    </div>
+    @endif
+
 
     <div class="row justify-content-between">
         <div class="col-12 col-md-8">
             {{-- TODO: Title --}}
-            <h1>Post title</h1>
+            <h1>{{$post->title}}</h1>
 
             <p class="small text-secondary mb-0">
                 <i class="fas fa-user"></i>
                 {{-- TODO: Author --}}
-                <span>By Author</span>
+                <span>By {{$post->author == null ? "unknown" : $post->author->name}}</span>
             </p>
             <p class="small text-secondary mb-0">
                 <i class="far fa-calendar-alt"></i>
                 {{-- TODO: Date --}}
-                <span>01/01/2022</span>
+                <span>{{substr($post->created_at,0,10)}}</span>
             </p>
 
             <div class="mb-2">
                 {{-- TODO: Read post categories from DB --}}
-                @foreach (['primary', 'secondary','danger', 'warning', 'info', 'dark'] as $category)
+                @foreach ($post->categories as $category)
                     <a href="#" class="text-decoration-none">
-                        <span class="badge bg-{{ $category }}">{{ $category }}</span>
+                        <span class="badge bg-{{ $category->style }}">{{ $category->name }}</span>
                     </a>
                 @endforeach
             </div>
 
+            <p>
+                <i>{{$post->description}}</i>
+            </p>
+
+            <p>
+                {{$post->text}}
+            </p>
+
             {{-- TODO: Link --}}
-            <a href="#"><i class="fas fa-long-arrow-alt-left"></i> Back to the homepage</a>
+            <a href="{{route('posts.index')}}"><i class="fas fa-long-arrow-alt-left"></i> Back to the homepage</a>
 
         </div>
 
@@ -41,11 +63,13 @@
             <div class="float-lg-end">
 
                 {{-- TODO: Links, policy --}}
-                <a role="button" class="btn btn-sm btn-primary" href="#"><i class="far fa-edit"></i> Edit post</a>
+                @if ($post->author != null && (Auth::user()->id == $post->author->id))
+                <a role="button" class="btn btn-sm btn-primary" href="{{route('posts.edit',$post)}}"><i class="far fa-edit"></i> Edit post</a>
+                @endif
 
-                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#delete-confirm-modal"><i class="far fa-trash-alt">
+                {{-- <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#delete-confirm-modal"><i class="far fa-trash-alt">
                     <span></i> Delete post</span>
-                </button>
+                </button> --}}
 
             </div>
         </div>
@@ -85,7 +109,12 @@
     <img
         id="cover_preview_image"
         {{-- TODO: Cover --}}
-        src="{{ asset('images/default_post_cover.jpg') }}"
+        @if (isset($post->cover_image_path))
+            src="{{ '/storage/'.$post->cover_image_path }}"
+        @else
+            src="{{ asset('images/default_post_cover.jpg') }}"
+        @endif
+
         alt="Cover preview"
         class="my-3"
     >
