@@ -6,6 +6,8 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -29,7 +31,10 @@ class PostController extends Controller
      */
     public function create()
     {
-        return view('posts.create',[
+        // if(!Auth::check()) {
+        //     return redirect('posts');
+        // }
+        return view('posts.create', [
             'categories' => Category::all(),
         ]);
     }
@@ -39,6 +44,9 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+        if (!Auth::check()) {
+            return redirect('posts');
+        }
         $validated = $request->validate([
             'title'         => 'required|min:5|max:256',
             'description'   => 'nullable',
@@ -49,11 +57,12 @@ class PostController extends Controller
         ]);
         //fájl objektum feldolgozása, képfájl nevének generálása, elmentése publikus storage-ba
         $cover_image_path = null;
-        if($request->hasFile('cover_image')) {
+        if ($request->hasFile('cover_image')) {
             $file = $request->file('cover_image');
-            $cover_image_path = 'cover_image_'. Str::random(10).'.'.$file->getClientOriginalExtension();
+            $cover_image_path = 'cover_image_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
             Storage::disk('public')->put(
-                 $cover_image_path,$file->get()
+                $cover_image_path,
+                $file->get()
             );
         }
         //objektum létrehozása és mentése
@@ -62,13 +71,18 @@ class PostController extends Controller
             'description'       => $validated['description'],
             'text'              => $validated['text'],
             'cover_image_path'  => $cover_image_path,
+            'author_id'         => Auth::id(), // $request->user()->id, //Auth::id()
         ]);
-        if(isset($validated['categories']))
-        {
+        if (isset($validated['categories'])) {
             $post->categories()->sync($validated['categories']);
         }
         //redirect
-        return redirect()->route('posts.create');
+        if (isset($validated['categories'])) {
+            $post->categories()->sync($validated['categories']);
+        }
+        Session::flash('post_created');
+        //redirect
+        return redirect()->route('posts.show',$post);
     }
 
     /**
@@ -76,6 +90,9 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
+        return view('posts.show', [
+            'post' => $post,
+        ]);
         //
     }
 
@@ -84,7 +101,14 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        //
+        // if(!($post->author && Auth::id() == $post->author->id))
+        // {
+        //     return redirect()->route('posts.index');
+        // }
+        return view('posts.edit', [
+            'post' => $post,
+            'categories' => Category::all(),
+        ]);
     }
 
     /**
@@ -92,7 +116,48 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        //
+        if(!($post->author && Auth::id() == $post->author->id))
+        {
+            return redirect()->route('posts.index');
+        }
+        $validated = $request->validate([
+            'title'                 => 'required|min:5|max:256',
+            'description'           => 'nullable',
+            'text'                  => 'required',
+            'categories'            => 'nullable|array',
+            'categories.*'          => 'numeric|integer|exists:categories,id',
+            'cover_image'           => 'nullable|file|mimes:jpg,bmp,png|max:4096',
+            'remove_cover_image'    => 'nullable|boolean',
+        ]);
+        //fájl objektum feldolgozása, képfájl nevének generálása, elmentése publikus storage-ba
+        $cover_image_path = $post->cover_image_path;
+        if(isset($validated['remove_cover_image'])) {
+            $cover_image_path = null;
+        }
+        if ($request->hasFile('cover_image')) {
+            $file = $request->file('cover_image');
+            $cover_image_path = 'cover_image_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+            Storage::disk('public')->put(
+                $cover_image_path,
+                $file->get()
+            );
+        }
+        if($cover_image_path != $post->cover_image_path && $post->cover_image_path != null) {
+            Storage::disk('public')->delete($post->cover_image_path);
+        }
+        //objektum létrehozása és mentése
+        $post->title = $validated['title'];
+        $post->description = $validated['description'];
+        $post->text = $validated['text'];
+        $post->cover_image_path = $cover_image_path;
+        $post->save();
+        
+        if (isset($validated['categories'])) {
+            $post->categories()->sync($validated['categories']);
+        }
+        Session::flash('post_updated');
+        //redirect
+        return redirect()->route('posts.show',$post);
     }
 
     /**
