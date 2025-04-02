@@ -16,6 +16,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        User::factory()->create([
+            'email' => 'admin@example.com',
+            'is_admin' => true,
+        ]);
         $usernum = fake()->numberBetween(10, 15);
         $posts = Post::factory(fake()->numberBetween(10, 15))->create();
         $categories = Category::factory(fake()->numberBetween(10, 15))->create();

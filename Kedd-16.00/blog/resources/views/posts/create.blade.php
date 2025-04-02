@@ -75,31 +75,38 @@
                     <label for="categories" class="col-sm-2 col-form-label py-0">Categories</label>
                     <div class="col-sm-10">
                         {{-- TODO: Read post categories from DB --}}
-                        @forelse ($categories as $category)
-                            <div class="form-check">
-                                <input type="checkbox" class="form-check-input @error('categories.*') is-invalid @enderror"
-                                    value="{{ $category->id }}" id="{{ $category->id }}" name='categories[]'
-                                    @checked(in_array($category->id, old('categories', [])))>
-                                {{-- TODO --}}
-                                <label for="{{ $category }}" class="form-check-label">
-                                    <span class="badge bg-{{ $category->style }}">{{ $category->name }}</span>
-                                </label>
-                                @if ($loop->last)
-                                    @error('categories.*')
-                                        <div class="invalid-feedback">
-                                            <ul>
-                                                @foreach ($errors->get('categories.*') as $errormsg)
-                                                    <li>{{ $errormsg[0] }}</li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
-                                    @enderror
-                                @endif
+                        <div class="row">
+                            @forelse ($categories->chunk(3) as $chunks)
+                                <div class="col-6 col-md-3 col-lg2">
+                                    @foreach ($chunks as $category)
+                                        <div class="form-check">
+                                            <input type="checkbox"
+                                                class="form-check-input @error('categories.*') is-invalid @enderror"
+                                                value="{{ $category->id }}" id="{{ $category->id }}" name='categories[]'
+                                                @checked(in_array($category->id, old('categories', [])))>
+                                            {{-- TODO --}}
+                                            <label for="{{ $category }}" class="form-check-label">
+                                                <span class="badge bg-{{ $category->style }}">{{ $category->name }}</span>
+                                            </label>
+                                            @if ($loop->last)
+                                                @error('categories.*')
+                                                    <div class="invalid-feedback">
+                                                        <ul>
+                                                            @foreach ($errors->get('categories.*') as $errormsg)
+                                                                <li>{{ $errormsg[0] }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                @enderror
+                                            @endif
 
-                            </div>
-                        @empty
-                            <p>No categories found</p>
-                        @endforelse
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @empty
+                                <p>No categories found</p>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
 

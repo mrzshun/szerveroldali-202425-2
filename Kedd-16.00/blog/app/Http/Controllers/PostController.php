@@ -20,7 +20,7 @@ class PostController extends Controller
     public function index()
     {
         return view('posts.index', [
-            'posts'     => Post::all(),
+            'posts'     => Post::paginate(6),
             'categories' => Category::all(),
             'users' => User::all(),
         ]);
@@ -92,7 +92,8 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        if(!Auth::check() || ($post->author != null && Auth::user()->id != $post->author->id)) {
+        if($this->user()->cannot('update',$post)) {
+            Session::flash('cannot_delete_post',$post['title']);
             return redirect()->route('posts.index');
         }
         return view('posts.edit', [
@@ -106,7 +107,11 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        if(!Auth::check() || ($post->author != null && Auth::user()->id != $post->author->id)) {
+        // if(!Auth::check() || ($post->author != null && Auth::user()->id != $post->author->id)) {
+        //     return redirect()->route('posts.index');
+        // }
+        if($request->user()->cannot('update',$post)) {
+            Session::flash('cannot_delete_post',$post['title']);
             return redirect()->route('posts.index');
         }
         $validated = $request->validate([
@@ -152,6 +157,11 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        //Auth::user()->can('delete',$post);
+        $this->authorize('delete',$post);
+        Session::flash('post_deleted',$post['title']);
+        $post->delete();
+        return redirect()->route('posts.index');
         //
     }
 }

@@ -20,6 +20,16 @@
     </div>
 
     {{-- TODO: Session flashes --}}
+    @if (Session::has('cannot_delete_post'))
+        <div class="alert alert-success">
+            <p>You cannot delete the following post: {{ session('cannot_delete_post') }}</p>
+        </div>
+    @endif
+    @if (Session::has('post_deleted'))
+        <div class="alert alert-success">
+            <p>The post is successfully deleted: {{ session('post_deleted') }}</p>
+        </div>
+    @endif
 
     <div class="row mt-3">
         <div class="col-12 col-lg-9">
@@ -84,7 +94,7 @@
             </div>
 
             <div class="d-flex justify-content-center">
-                {{-- TODO: Pagination --}}
+                {{$posts->links()}}
             </div>
 
         </div>
