@@ -11,16 +11,23 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
-    /**
+
+    public function __construct()
+    {
+        $this->authorizeResource(Post::class,'post');
+    }
+
+    /** 
      * Display a listing of the resource.
      */
     public function index(): View
     {
         return view('posts.index', [
-            'posts' => Post::all(),
+            'posts' => Post::paginate(6),
             'categories' => Category::all(),
             'users' => User::all(),
         ]);
@@ -101,9 +108,14 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
+        // version 1
         // if(!($post->author && Auth::id() == $post->author->id))
         // {
         //     return redirect()->route('posts.index');
+        // }
+        // version 2 - gate:
+        // if (! Gate::allows('update-post', $post)) {
+        //     abort(403);
         // }
         return view('posts.edit', [
             'post' => $post,
@@ -116,8 +128,12 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        if(!($post->author && Auth::id() == $post->author->id))
-        {
+        // if(!($post->author && Auth::id() == $post->author->id))
+        // {
+        //     return redirect()->route('posts.index');
+        // }
+        if($request->user()->cannot('update',$post)) {
+            Session::flash('cannot_update_post',$post['title']);
             return redirect()->route('posts.index');
         }
         $validated = $request->validate([
@@ -165,6 +181,10 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        $this->authorize('delete',$post);
+        Session::flash('post_deleted',$post['title']);
+        $post->delete();
+        return redirect()->route('posts.index');
         //
     }
 }

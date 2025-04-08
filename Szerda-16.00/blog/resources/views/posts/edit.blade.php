@@ -3,7 +3,7 @@
 
 @section('content')
     <div class="container">
-        @if ($post->author && Auth::id() == $post->author->id)
+        @can('update',$post)
             <h1>Edit post</h1>
             <div class="mb-4">
                 {{-- TODO: Link --}}
@@ -135,7 +135,7 @@
             </form>
         @else
             <h1>You have to be the author of this post to edit it</h1>
-        @endif
+        @endcan
 
     </div>
 @endsection

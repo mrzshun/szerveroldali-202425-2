@@ -54,15 +54,18 @@
                 <div class="float-lg-end">
 
                     {{-- TODO: Links, policy --}}
-                    @if ($post->author && Auth::id() == $post->author->id)
-                        <a role="button" class="btn btn-sm btn-primary" href="{{route('posts.edit',$post)}}"><i class="far fa-edit"></i> Edit
-                            post</a>
+                    @can('update', $post)
+                    <a role="button" class="btn btn-sm btn-primary" href="{{ route('posts.edit', $post) }}"><i
+                        class="far fa-edit"></i> Edit
+                        post</a>
+                    @endcan
 
-                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                            data-bs-target="#delete-confirm-modal"><i class="far fa-trash-alt">
+                    @can('delete', $post)
+                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#delete-confirm-modal"><i
+                                class="far fa-trash-alt">
                                 <span></i> Delete post</span>
                         </button>
-                    @endif
+                    @endcan
 
                 </div>
             </div>
@@ -89,7 +92,10 @@
                         </button>
 
                         {{-- TODO: Route, directives --}}
-                        <form id="delete-post-form" action="#" method="POST" class="d-none">
+                        <form id="delete-post-form" action="{{ route('posts.destroy', $post) }}" method="POST"
+                            class="d-none">
+                            @method('DELETE')
+                            @csrf
 
                         </form>
                     </div>
