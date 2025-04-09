@@ -26,3 +26,32 @@ Modellek közötti kapcsolatok
 https://webprogramozas.inf.elte.hu/#!/subjects/webprog-server/handouts/laravel-04-rel%C3%A1ci%C3%B3k
 
 https://laravel.com/docs/12.x/eloquent-relationships#main-content
+
+
+REST CRUD endpointok
+
+CRUD: 
+
+read -> egy elem, vagy az összes elem lekérdezése
+Http metódus: GET
+/categories         // mind lekérése
+/categories/:id     // egy elem lekérdezése
+
+create -> új entitás létrehozása
+Http metódus: POST
+Authentikált
+/categories         // post bodyban adatok --> létrehozás
+
+update -> változtatás 
+Http metódus: PUT / PATCH
+Authentikált
+Mikor melyik?
+PUT: a teljes objektumot átadjuk az összes mezőjével
+PATCH: csak a frissítendő mezőket adjuk át
+/categories/:id     //módosítás
+
+delete -> törlés
+Http metódus: DELETE
+Authentikált
+/categories         //egy törlése
+/categories/:id     //összes törlése
