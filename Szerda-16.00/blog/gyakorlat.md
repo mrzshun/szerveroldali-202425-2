@@ -33,3 +33,21 @@ User-Comment - 1-n
 Frontend letöltése:
 
 https://github.com/szerveroldali/blog_basic_assets
+
+
+CRUD a Category modelre
+CRUD: Create, Read, Update, Delete 
+
+Read:
+GET /categories         // mindegyik lekérése
+GET /categories/:id     // egy adott id lekérése
+
+Create
+POST /categories        // új létrehozása
+
+Update
+PUT /categories/:id     // módosítás - teljes objektum
+PATCH /categories/:id   // módosítás - a mezők egy részét
+
+Delete
+DELETE /categories/:id  // törlés
