@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Resources\CategoryResource;
+use App\Http\Resources\PostCollection;
+use App\Http\Resources\PostResource;
 use App\Models\Category;
+use App\Models\Post;
 
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,29 +18,31 @@ use Illuminate\Validation\Rule;
 
 class ApiController extends Controller
 {
+
+    public function getPosts(Request $request, string|null $id = null)
+    {
+        if (isset($id)) {
+            return new PostResource(Post::with('categories')->findOrFail($id));
+        }
+        return PostResource::collection(Post::with('categories')->get());
+    }
+
+    public function getPostsPaginated(Request $request)
+    {
+        return new PostCollection(Post::with('author')->paginate(3));
+    }
+
     public function getCategories(Request $request, string|null $id = null)
     {
         if (isset($id)) {
-            $category = Category::find($id);
-            if(!$category) {
-                return response()->json([],404);
-            }
+            return new CategoryResource(Category::with('posts')->findOrFail($id));
         }
-        return Category::all();
+        return CategoryResource::collection(Category::all());
     }
     //
-    public function store(Request $request) {
+    public function store(StoreCategoryRequest $request) {
         //validáció
-        $validated = $request->validate([
-            'name' => 'required|min:4|max:10',
-            'style' => [
-                'required',
-                Rule::in(Category::$styles),
-            ],
-        ], [
-            'name.required' => 'The name field is mandatory!',
-            'required' => 'This field is MANDATORY!'
-        ]);
+        $validated = $request->validated();
         $category = Category::factory()->create($validated);
         return response()->json($category,201);
     }
@@ -62,6 +69,24 @@ class ApiController extends Controller
         return response()->json($category,201);    
         //
     }
+
+    public function destroy(Request $request, $id)
+    {
+        $category = Category::find($id);
+        if(!$category) {
+            return response()->json([],404);
+        }
+        if(!$request->user()->tokenCan('blog:admin')) {
+            return response()->json([
+                'error' => 'Nincs jogosultságod törölni a kategóriát!'
+            ], 403);
+        }
+        $category->delete();
+        return response(status: 204);
+        //
+    }
+
+
 
     public function register(Request $request)
     {
@@ -102,7 +127,7 @@ class ApiController extends Controller
             ],400);
         }
         if(Auth::attempt($validated)) {
-            $token = $user->createToken($user->email);
+            $token = $user->createToken($user->email,$user->is_admin ? ['blog:admin']:[]);
             return response()->json([
                 'token' => $token->plainTextToken,
             ]);
