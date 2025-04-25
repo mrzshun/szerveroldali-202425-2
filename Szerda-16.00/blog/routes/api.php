@@ -19,11 +19,21 @@ Route::middleware('auth:sanctum')->group(function() {
 // Category műveletek
 Route::get('categories/{id?}',  [ApiController::class,'getCategories'])     ->name('api.categories.get')    ->where('id','[0-9]+');
 
+
 Route::middleware('auth:sanctum')->group(function() {
-    Route::post('categories',       [ApiController::class,'store'])             ->name('api.categories.store');
-    Route::put('categories/{id}',   [ApiController::class,'update'])            ->name('api.categories.update');
-    Route::delete('categories/{id}',[ApiController::class,'destroy'])           ->name('api.categories.destroy');
+    Route::post('categories',       [ApiController::class,'storeCategory'])             ->name('api.categories.store');
+    Route::put('categories/{id}',   [ApiController::class,'updateCategory'])            ->name('api.categories.update') ->where('id','[0-9]+');
+    Route::delete('categories/{id}',[ApiController::class,'destroyCategory'])           ->name('api.categories.destroy')->where('id','[0-9]+');
 });
+
+Route::get('posts/{id?}',  [ApiController::class,'getPosts'])->name('api.posts.get')->where('id','[0-9]+');
+
+Route::middleware('auth:sanctum')->group(function() {
+    Route::post('posts',       [ApiController::class,'storePost'])             ->name('api.posts.store');
+    Route::put('posts/{id}',   [ApiController::class,'updatePost'])            ->name('api.posts.update');
+    Route::delete('posts/{id}',[ApiController::class,'destroyPost'])           ->name('api.posts.destroy');
+});
+
 
 // request URI paraméterek validálása
 Route::get('uri-params1/{number}/{string}/{optional?}', function ($number, $string, $optional = null) {

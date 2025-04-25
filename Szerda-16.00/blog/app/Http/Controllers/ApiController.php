@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Resources\CategoryResource;
+use App\Http\Resources\PostResource;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -11,32 +16,57 @@ use Illuminate\Validation\Rule;
 
 class ApiController extends Controller
 {
+    // *** POSTS ***
 
+    public function getPosts(Request $request, string|null $id = null) {
+        if($id) {
+            return new PostResource(Post::with('categories')->findOrFail($id));
+        }
+        return PostResource::collection(Post::with('categories')->get());
+    }
+
+    public function storePost(StorePostRequest $request) {
+        //adatok validálása
+        $validated = $request->validated();
+        //fájl objektum feldolgozása, képfájl nevének generálása, elmentése publikus storage-ba
+        $cover_image_path = null;
+
+        //objektum létrehozása és mentése
+        $post = Post::factory()->create([
+            'title'             => $validated['title'],
+            'description'       => $validated['description'],
+            'text'              => $validated['text'],
+            'cover_image_path'  => $cover_image_path,
+            'author_id'         => Auth::id(), // $request->user()->id, //Auth::id()
+        ]);
+        if (isset($validated['categories'])) {
+            $post->categories()->sync($validated['categories']);
+        }
+        //redirect
+        return response(new PostResource($post->load('author')),201);
+
+    }
+
+
+    // *** CATEGORIES ***
 
     public function getCategories(Request $request, string|null $id = null) {
         if($id) {
-            return Category::findOrFail($id);
+            return new CategoryResource(Category::with('posts')->findOrFail($id));
         }
-        return Category::all();
+        return CategoryResource::collection(Category::with('posts')->get());
     }
 
-    public function store(Request $request) {
+    public function storeCategory(StoreCategoryRequest $request) {
         //adatok validálása
-        $validated = $request->validate([
-            'name' => 'required|min:3|max:12|unique:categories',
-            'style' => [
-                'required',
-                Rule::in(Category::$styles),
-            ],
-        ]);
-        
+        $validated = $request->validated();
         //objektum létrehozása és mentése
         $category = Category::factory()->create($validated);
         //redirect
         return response()->json($category,201);
     }
 
-    public function update(Request $request, $id) {
+    public function updateCategory(Request $request, $id) {
         //adatok validálása
         $validated = $request->validate([
             'name' => 'required|min:3|max:12|unique:categories',
@@ -53,8 +83,14 @@ class ApiController extends Controller
         return response()->json($category,201);
     }
 
-    public function destroy(Request $request,$id) {
+    public function destroyCategory(Request $request,$id) {
         $category = Category::findOrFail($id);
+
+        if(!$request->user()->tokenCan('admin')){
+            return response()->json([
+                'error' => 'nincs jogosultságod törölni, mert nem vagy admin!',
+            ],403);
+        }
         $category->delete();
         return response(status:204);
     }

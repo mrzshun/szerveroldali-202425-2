@@ -54,24 +54,10 @@ class PostController extends Controller
         if (!Auth::check()) {
             return redirect('posts');
         }
-        $validated = $request->validate([
-            'title'         => 'required|min:5|max:256',
-            'description'   => 'nullable',
-            'text'          => 'required',
-            'categories'    => 'nullable|array',
-            'categories.*'  => 'numeric|integer|exists:categories,id',
-            'cover_image'   => 'nullable|file|mimes:jpg,bmp,png|max:4096'
-        ]);
+        $validated = $request->validated();
+
         //fájl objektum feldolgozása, képfájl nevének generálása, elmentése publikus storage-ba
-        $cover_image_path = null;
-        if ($request->hasFile('cover_image')) {
-            $file = $request->file('cover_image');
-            $cover_image_path = 'cover_image_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-            Storage::disk('public')->put(
-                $cover_image_path,
-                $file->get()
-            );
-        }
+        $cover_image_path = '';
         //objektum létrehozása és mentése
         $post = Post::factory()->create([
             'title'             => $validated['title'],
@@ -80,9 +66,6 @@ class PostController extends Controller
             'cover_image_path'  => $cover_image_path,
             'author_id'         => Auth::id(), // $request->user()->id, //Auth::id()
         ]);
-        if (isset($validated['categories'])) {
-            $post->categories()->sync($validated['categories']);
-        }
         //redirect
         if (isset($validated['categories'])) {
             $post->categories()->sync($validated['categories']);
