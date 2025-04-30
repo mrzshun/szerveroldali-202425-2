@@ -16,9 +16,9 @@ Route::post('login',    [ApiController::class,'login'])->name('api.login');
 Route::middleware('auth:sanctum')->group(function() {
     Route::get('/user',                 [ApiController::class,'user'])      ->name('api.user');
     Route::post('/logout',              [ApiController::class,'logout'])    ->name('api.logout');
-    Route::post('/categories',          [ApiController::class,'store'])     ->name('api.category.store')    ->where('id','[0-9]+');
-    Route::put('/categories/{id}',      [ApiController::class,'update'])    ->name('api.category.update')   ->where('id','[0-9]+');
-    Route::delete('/categories/{id}',   [ApiController::class,'destroy'])   ->name('api.category.destroy')  ->where('id','[0-9]+');
+    Route::post('/categories',          [ApiController::class,'storeCategory'])     ->name('api.category.store')    ->where('id','[0-9]+');
+    Route::put('/categories/{id}',      [ApiController::class,'updateCategory'])    ->name('api.category.update')   ->where('id','[0-9]+');
+    Route::delete('/categories/{id}',   [ApiController::class,'destroyCategory'])   ->name('api.category.destroy')  ->where('id','[0-9]+');
 
     Route::post('posts',                [ApiController::class,'storePost'])     ->name('api.posts.store')   ->where('id','[0-9]+');
     Route::put('posts/{id}',            [ApiController::class,'updatePost'])    ->name('api.posts.update')  ->where('id','[0-9]+');
@@ -39,4 +39,12 @@ Route::get('categories/{id?}',  [ApiController::class,'getCategories']) ->name('
 Route::get('posts/{id?}',       [ApiController::class,'getPosts'])      ->name('api.posts.get')     ->where('id','[0-9]+');
 
 Route::get('postsPaginated',    [ApiController::class,'getPostsPaginated']) ->name('api.posts.getPaginated');
+
+
+//Users By Category: minden user, akinek egy adott kategóriában (id) van posztja
+Route::get('usersByCat/{id}', [ApiController::class,'usersByCat'])->name('api.posts.usersByCat') ->where('id','[0-9]+');
+
+
+//Related Posts - minden olyan post amelynek van egy adott poszttal közös kategóriája
+Route::get('relatedPosts/{id}', [ApiController::class,'relatedPosts'])->name('api.posts.relatedPosts') ->where('id','[0-9]+');
 

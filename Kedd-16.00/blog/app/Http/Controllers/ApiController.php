@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\PostCollection;
 use App\Http\Resources\PostResource;
+use App\Http\Resources\UserResource;
 use App\Models\Category;
 use App\Models\Post;
 
@@ -19,19 +22,82 @@ use Illuminate\Validation\Rule;
 class ApiController extends Controller
 {
 
+
+    public function usersByCat(Request $request, string|null $id = null){
+        $category = Category::findOrFail($id);
+        $posts = $category->posts;
+        $users = collect([]);
+        foreach($posts as $post) {
+            if(isset($post->author)) {
+                $users[] = $post->author;
+            }
+        }
+        $users = $users->unique();
+        return UserResource::collection($users);
+    }
+
+    public function relatedPosts(Request $request, string|null $id = null){
+        $post = Post::findOrFail($id);
+        $categories = $post->categories;
+        $relatedPosts = collect([]);
+        foreach($categories as $cat) {
+            $relatedPosts = $relatedPosts->concat($cat->posts);
+        }
+        $relatedPosts = $relatedPosts->unique('id');
+        return response($relatedPosts);
+    }
+
+
+    // POSTS
     public function getPosts(Request $request, string|null $id = null)
     {
         if (isset($id)) {
             return new PostResource(Post::with('categories')->findOrFail($id));
         }
-        return PostResource::collection(Post::with('categories')->get());
+        return PostResource::collection(Post::all());
     }
 
     public function getPostsPaginated(Request $request)
     {
         return new PostCollection(Post::with('author')->paginate(3));
     }
+    
+    public function storePost(StorePostRequest $request) {
+        //validáció
+        $validated = $request->validated();
+        //létrehozás
+        $cover_image_path = '';
+        $post = Post::factory()->create([
+            'title'             => $validated['title'],
+            'description'       => $validated['description'],
+            'text'              => $validated['text'],
+            'cover_image_path'  => $cover_image_path == '' ? NULL : $cover_image_path,
+            'author_id'         => $request->user()->id,
+        ]);
+        $post->categories()->sync(isset($validated['categories']) ? $validated['categories'] : []);
 
+        return new PostResource($post->load('author')->load('categories'));
+    }
+
+    public function updatePost(UpdatePostRequest $request, $id) {
+        //validáció
+        $validated = $request->validated();
+        //létrehozás
+        $post = Post::findOrFail($id);
+
+        $post->title            = $validated['title'];
+        $post->description      = $validated['description'];
+        $post->text             = $validated['text'];
+
+        $post->save();
+
+        $post->categories()->sync(isset($validated['categories']) ? $validated['categories'] : []);
+
+        return new PostResource($post->load('author')->load('categories'));
+    }
+
+    
+    // CATEGORY
     public function getCategories(Request $request, string|null $id = null)
     {
         if (isset($id)) {
@@ -39,15 +105,15 @@ class ApiController extends Controller
         }
         return CategoryResource::collection(Category::all());
     }
-    //
-    public function store(StoreCategoryRequest $request) {
+
+    public function storeCategory(StoreCategoryRequest $request) {
         //validáció
         $validated = $request->validated();
         $category = Category::factory()->create($validated);
         return response()->json($category,201);
     }
 
-    public function update(Request $request, $id)
+    public function updateCategory(Request $request, $id)
     {
         $validated = $request->validate([
             'name' => 'required|min:4|max:10',
@@ -70,7 +136,7 @@ class ApiController extends Controller
         //
     }
 
-    public function destroy(Request $request, $id)
+    public function destroyCategory(Request $request, $id)
     {
         $category = Category::find($id);
         if(!$category) {
