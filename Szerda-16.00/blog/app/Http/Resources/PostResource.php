@@ -19,6 +19,7 @@ class PostResource extends JsonResource
             'title' => $this->title,
             'description' => $this->description,
             'text' => $this->text,
+            'cover_image_path' => $this->cover_image_path,
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
             'author' => new UserResource($this->author),
         ];

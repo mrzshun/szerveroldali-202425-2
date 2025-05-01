@@ -53,6 +53,13 @@ Route::get('uri-params2/{number}/{string}/{optional?}', function ($number, $stri
 })->middleware(ValidateParams::class);
 
 
+// Fájl feltöltése egy létező Posthoz
+Route::post('addFileToPost/{id}', [ApiController::class,'addFileToPost'])->name('api.posts.addFileToPost')->where('id','[0-9]+');
 
+// Users By Category: kérünk minden usert, akinek van posztja egy adott kategóriában [category id alapján]
+Route::get('usersByCategory/{id}',  [ApiController::class,'usersByCategory'])->name('api.categories.users')->where('id','[0-9]+');
+
+// Related Posts: kérünk minden posztot, amelynek van közös kategóriája egy adott poszttal [post id alapján]
+Route::get('relatedPosts/{id}',  [ApiController::class,'relatedPosts'])->name('api.posts.relatedPosts')->where('id','[0-9]+');
 
 
