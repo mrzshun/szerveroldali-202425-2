@@ -9,8 +9,11 @@
         "php": "^8.2",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
+        "laravel/telescope": "^5.7",
         "laravel/tinker": "^2.10.1",
-        "laravel/ui": "^4.6"
+        "laravel/ui": "^4.6",
+        "mll-lab/laravel-graphiql": "^3.3",
+        "nuwave/lighthouse": "^6.55"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
